@@ -1,10 +1,10 @@
-import numpy as np 
+import numpy as np
 import cv2
 from numba import jit
 
 import sys
 PY3 = sys.version_info >= (3,)
- 
+
 if PY3:
     xrange = range
 
@@ -29,7 +29,7 @@ def func1(dx, dy, boundary_x, boundary_y, height, width, numChannels):
                 tx = dx[j, i, ch]
                 ty = dy[j, i, ch]
                 magnitude = np.sqrt(tx*tx + ty*ty)
-                if(magnitude > r[j, i]):
+                if magnitude > r[j, i]:
                     r[j, i] = magnitude
                     c = ch
                     x = tx
@@ -40,16 +40,17 @@ def func1(dx, dy, boundary_x, boundary_y, height, width, numChannels):
 
             for kk in xrange(0, NUM_SECTOR):
                 dotProd = boundary_x[kk]*x + boundary_y[kk]*y
-                if(dotProd > mmax):
+                if dotProd > mmax:
                     mmax = dotProd
                     maxi = kk
-                elif(-dotProd > mmax):
+                elif -dotProd > mmax:
                     mmax = -dotProd
                     maxi = kk + NUM_SECTOR
 
             alfa[j, i, 0] = maxi % NUM_SECTOR
             alfa[j, i, 1] = maxi
     return r, alfa
+
 
 @jit(cache=True)
 def func2(dx, dy, boundary_x, boundary_y, r, alfa, nearest, w, k, height, width, sizeX, sizeY, p, stringSize):
@@ -58,19 +59,20 @@ def func2(dx, dy, boundary_x, boundary_y, r, alfa, nearest, w, k, height, width,
         for j in xrange(sizeX):
             for ii in xrange(k):
                 for jj in xrange(k):
-                    if((i * k + ii > 0) and (i * k + ii < height - 1) and (j * k + jj > 0) and (j * k + jj < width  - 1)):
+                    if (i * k + ii > 0) and (i * k + ii < height - 1) and (j * k + jj > 0) and (j * k + jj < width - 1):
                         mapp[i*stringSize + j*p + alfa[k*i+ii,j*k+jj,0]] +=  r[k*i+ii,j*k+jj] * w[ii,0] * w[jj,0]
                         mapp[i*stringSize + j*p + alfa[k*i+ii,j*k+jj,1] + NUM_SECTOR] +=  r[k*i+ii,j*k+jj] * w[ii,0] * w[jj,0]
-                        if((i + nearest[ii] >= 0) and (i + nearest[ii] <= sizeY - 1)):
+                        if (i + nearest[ii] >= 0) and (i + nearest[ii] <= sizeY - 1):
                             mapp[(i+nearest[ii])*stringSize + j*p + alfa[k*i+ii,j*k+jj,0]] += r[k*i+ii,j*k+jj] * w[ii,1] * w[jj,0]
                             mapp[(i+nearest[ii])*stringSize + j*p + alfa[k*i+ii,j*k+jj,1] + NUM_SECTOR] += r[k*i+ii,j*k+jj] * w[ii,1] * w[jj,0]
-                        if((j + nearest[jj] >= 0) and (j + nearest[jj] <= sizeX - 1)):
+                        if (j + nearest[jj] >= 0) and (j + nearest[jj] <= sizeX - 1):
                             mapp[i*stringSize + (j+nearest[jj])*p + alfa[k*i+ii,j*k+jj,0]] += r[k*i+ii,j*k+jj] * w[ii,0] * w[jj,1]
                             mapp[i*stringSize + (j+nearest[jj])*p + alfa[k*i+ii,j*k+jj,1] + NUM_SECTOR] += r[k*i+ii,j*k+jj] * w[ii,0] * w[jj,1]
-                        if((i + nearest[ii] >= 0) and (i + nearest[ii] <= sizeY - 1) and (j + nearest[jj] >= 0) and (j + nearest[jj] <= sizeX - 1)):
+                        if (i + nearest[ii] >= 0) and (i + nearest[ii] <= sizeY - 1) and (j + nearest[jj] >= 0) and (j + nearest[jj] <= sizeX - 1):
                             mapp[(i+nearest[ii])*stringSize + (j+nearest[jj])*p + alfa[k*i+ii,j*k+jj,0]] += r[k*i+ii,j*k+jj] * w[ii,1] * w[jj,1]
                             mapp[(i+nearest[ii])*stringSize + (j+nearest[jj])*p + alfa[k*i+ii,j*k+jj,1] + NUM_SECTOR] += r[k*i+ii,j*k+jj] * w[ii,1] * w[jj,1]
     return mapp
+
 
 @jit(cache=True)
 def func3(partOfNorm, mappmap, sizeX, sizeY, p, xp, pp):
@@ -108,6 +110,7 @@ def func3(partOfNorm, mappmap, sizeX, sizeY, p, xp, pp):
             newData[pos2+3*p:pos2+4*p] = mappmap[pos1:pos1+p] / valOfNorm
             newData[pos2+10*p:pos2+12*p] = mappmap[pos1+p:pos1+3*p] / valOfNorm
     return newData
+
 
 @jit(cache=True)
 def func4(mappmap, p, sizeX, sizeY, pp, yp, xp, nx, ny):

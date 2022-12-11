@@ -23,8 +23,7 @@ def fftd(img, backwards=False, byRow=False):
     if byRow:
         return cv2.dft(np.float32(img), flags=(cv2.DFT_ROWS | cv2.DFT_COMPLEX_OUTPUT))
     else:
-        return cv2.dft(np.float32(img),
-                       flags=((cv2.DFT_INVERSE | cv2.DFT_SCALE) if backwards else cv2.DFT_COMPLEX_OUTPUT))
+        return cv2.dft(np.float32(img), flags=((cv2.DFT_INVERSE | cv2.DFT_SCALE) if backwards else cv2.DFT_COMPLEX_OUTPUT))
 
 
 # 实部图像

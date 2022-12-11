@@ -1,10 +1,14 @@
+import argparse
+
 import cv2
+
 from tracker import KCFTracker
 
+
 def tracker(cam, frame, bbox):
-    tracker = KCFTracker(True, True, True) # (hog, fixed_Window, multi_scale)
+    tracker = KCFTracker(True, True, True)  # (hog, fixed_Window, multi_scale)
     tracker.init(bbox, frame)
-    
+
     while True:
         ok, frame = cam.read()
 
@@ -32,13 +36,29 @@ def tracker(cam, frame, bbox):
     cv2.destroyAllWindows()
 
 
-if __name__ == '__main__':
-    video = cv2.VideoCapture('/home/liuze/桌面/ros_py_lane/test.mp4') # use your own compressed video
+def run(args):
+    if args.mode == 'video':
+        video = cv2.VideoCapture('无人机信标视频/IMG_6823.MOV')  # use your own compressed video
+    elif args.mode == 'builtin_stream':
+        video = cv2.VideoCapture(0)  # use builtin camera to collect video stream
+    elif args.mode == 'outer_stream':
+        video = cv2.VideoCapture(1)  # use outer camera to collect video stream
     fps = video.get(cv2.CAP_PROP_FPS)
     print(fps)
     size = (int(video.get(cv2.CAP_PROP_FRAME_WIDTH)), int(video.get(cv2.CAP_PROP_FRAME_HEIGHT)))
-    print(size) # image size
+    print(size)  # image size
     ok, frame = video.read()
     bbox = cv2.selectROI('Select ROI', frame, False)
-    if min(bbox) == 0: exit(0)
+    if min(bbox) == 0:
+        exit(0)
     tracker(video, frame, bbox)
+
+
+if __name__ == '__main__':
+    parser = argparse.ArgumentParser()
+    parser.add_argument('-m', '--mode', type=str,
+                        choices=['video', 'builtin_stream', 'outer_stream'], required=True, help="")
+
+    args = parser.parse_args()
+
+    run(args)
